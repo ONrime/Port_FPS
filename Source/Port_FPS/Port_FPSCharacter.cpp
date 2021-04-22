@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Port_FPSCharacter.h"
-#include "Port_FPSProjectile.h"
+#include "Port_FPS/Projectile/Port_FPSProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
