@@ -2,6 +2,9 @@
 
 
 #include "Player_CharacterBase.h"
+#include "Port_FPS/Character/Player/PlayerState/PlayerStateBase.h"
+#include "Port_FPS/Character/Player/PlayerState/Aim_PlayerUpper_StateBase.h"
+#include "Port_FPS/Character/Player/PlayerState/Standing_PlayerDown_StateBase.h"
 
 APlayer_CharacterBase::APlayer_CharacterBase()
 {
@@ -54,6 +57,13 @@ APlayer_CharacterBase::APlayer_CharacterBase()
 void APlayer_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	StateDownN = NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass());
+	StateUpperN = NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass());
+	StateUpperNClass = StateUpperN->GetState();
+	StateDownNClass = StateDownN->GetState();
+	StateDownN->StateStart(this);
+	StateUpperN->StateStart(this);
 }
 
 void APlayer_CharacterBase::TurnAtRate(float Rate)
@@ -76,12 +86,6 @@ void APlayer_CharacterBase::LookUpAtRate(float Rate)
 	Upper_Pitch = FMath::ClampAngle(InterpToAngle.Pitch, -90.0f, 90.0f);
 	//UE_LOG(LogTemp, Warning, TEXT("Upper_Pitch Rotation: %f"), Upper_Pitch);
 
-	//float PitchRate = Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds();
-	//AddControllerPitchInput(PitchRate);
-}
-
-void APlayer_CharacterBase::PlayerJump()
-{
 }
 
 void APlayer_CharacterBase::MoveForward(float Value)
@@ -121,11 +125,26 @@ void APlayer_CharacterBase::MoveRight(float Value)
 	}
 }
 
+void APlayer_CharacterBase::PlayerJump()
+{
+
+}
+
+void APlayer_CharacterBase::PlayerCrouch()
+{
+	StateDownN->HandleInput(this);
+}
 
 void APlayer_CharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	StateDownN->StateUpdate(this);
+	StateUpperN->StateUpdate(this);
+
 	Move(DeltaTime);
+
+	SpringArm->SetRelativeLocation(FVector(HeadCameraLoc.X, HeadCameraLoc.Y, HeadCameraLoc.Z));
 }
 
 void APlayer_CharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -136,13 +155,62 @@ void APlayer_CharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis("MoveRight", this, &APlayer_CharacterBase::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &APlayer_CharacterBase::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APlayer_CharacterBase::LookUpAtRate);
+
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &APlayer_CharacterBase::PlayerJump);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &APlayer_CharacterBase::PlayerCrouch);
 
 }
 
 void APlayer_CharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+}
+
+void APlayer_CharacterBase::SetStateUpperN(UPlayerUpper_StateBase* state)
+{
+	StateUpperN = state;
+}
+
+void APlayer_CharacterBase::SetStateDownN(UPlayerDown_StateBase* state)
+{
+	StateDownN = state;
+}
+
+void APlayer_CharacterBase::UpperPress(UPlayerUpper_StateBase* state)
+{
+	UPlayerUpper_StateBase* UpperState = nullptr;
+	if (state == nullptr) {
+		UpperState = StateUpperN->HandleInput(this);
+		if (UpperState == nullptr) {
+			return;
+		}
+	}
+	else { UpperState = state; }
+	StateUpperN->StateEnd(this);
+	StateUpperBClass = StateUpperN->GetState();
+	if (UpperState != nullptr) {
+		StateUpperN->DestroyComponent();
+		StateUpperN = UpperState;
+		StateUpperNClass = StateUpperN->GetState();
+		StateUpperN->StateStart(this);
+	}
+}
+
+void APlayer_CharacterBase::DownPress(UPlayerDown_StateBase* state)
+{
+	StateDownN->StateEnd(this);
+	StateDownBClass = StateDownN->GetState();
+	UPlayerDown_StateBase* DownState = nullptr;
+	if (state == nullptr) {
+		DownState = StateDownN->HandleInput(this);
+	}
+	else { DownState = state; }
+	if (DownState != nullptr) {
+		StateDownN->DestroyComponent();
+		StateDownN = DownState;
+		StateDownNClass = StateDownN->GetState();
+		StateDownN->StateStart(this);
+	}
 }
 
 void APlayer_CharacterBase::Move(float DeltaSeconds)

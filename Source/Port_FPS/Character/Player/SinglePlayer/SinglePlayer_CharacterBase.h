@@ -13,5 +13,19 @@ UCLASS()
 class PORT_FPS_API ASinglePlayer_CharacterBase : public APlayer_CharacterBase
 {
 	GENERATED_BODY()
+
+public:
+	ASinglePlayer_CharacterBase();
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PostInitializeComponents() override;
+
+private:
+
 	
 };

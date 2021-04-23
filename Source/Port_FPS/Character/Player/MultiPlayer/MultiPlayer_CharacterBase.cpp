@@ -2,6 +2,10 @@
 
 
 #include "MultiPlayer_CharacterBase.h"
+#include "Port_FPS/Character/Player/PlayerState/PlayerStateBase.h"
+#include "Port_FPS/Character/Player/PlayerState/Aim_PlayerUpper_StateBase.h"
+#include "Port_FPS/Character/Player/PlayerState/Standing_PlayerDown_StateBase.h"
+#include "Port_FPS/Character/Player/PlayerState/MultiPlayer_State/Prone_M_PlayerDown_StateBase.h"
 
 AMultiPlayer_CharacterBase::AMultiPlayer_CharacterBase()
 {
@@ -11,16 +15,21 @@ AMultiPlayer_CharacterBase::AMultiPlayer_CharacterBase()
 void AMultiPlayer_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	//SetStateDownN(NewObject<UProne_M_PlayerDown_StateBase>(this, UProne_M_PlayerDown_StateBase::StaticClass()));
+	//GetStateDownN()->StateStart(this);
 }
 
 void AMultiPlayer_CharacterBase::TurnAtRate(float Rate)
 {
 	Super::TurnAtRate(Rate);
+	GetStateDownN()->TurnAtRate(this, Rate);
 }
 
 void AMultiPlayer_CharacterBase::LookUpAtRate(float Rate)
 {
 	Super::LookUpAtRate(Rate);
+	GetStateDownN()->LookUpAtRate(this, Rate);
 }
 
 void AMultiPlayer_CharacterBase::PlayerJump()

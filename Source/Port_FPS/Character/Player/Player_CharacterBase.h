@@ -35,13 +35,15 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TurnAtRate(float Rate);
 	virtual void LookUpAtRate(float Rate);
-	virtual void PlayerJump();
 	virtual void MoveForward(float Value);
 	virtual void MoveRight(float Value);
+	virtual void PlayerJump();
+	virtual void PlayerCrouch();
 
 	float Upper_Pitch = 0.0f, Upper_Yaw = 0.0f, Upper_Yaw2 = 0.0f; // 하체고정시 상체 회전 값 yaw2는 90도 정제 없이 180도 기준으로 출력
 	float AimDirRight = 0.0f, AimDirForward = 0.0f; // 컨트롤러로 부터 받은 시점 키값 (AnimBP에서 사용하기 위해)
 	float InputDirForward = 0.0f, InputDirRight = 0.0f; // 컨트롤러로 부터 받은 이동 키값 (AnimBP에서 사용하기 위해)
+	
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -49,16 +51,30 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	// Base
-	float GetUpper_Pitch() { return Upper_Pitch; };
-	float GetUpper_Yaw() { return Upper_Yaw; }; float GetUpper_Yaw2() { return Upper_Yaw2; };
-	float GetAimDirRight() { return AimDirRight; }; float GetAimDirForward() { return AimDirForward; };
-	float GetInputDirForward() { return InputDirForward; }; float GetInputDirRight() { return InputDirRight; };
+	float GetUpper_Pitch() { return Upper_Pitch; }
+	float GetUpper_Yaw() { return Upper_Yaw; } float GetUpper_Yaw2() { return Upper_Yaw2; }
+	float GetAimDirRight() { return AimDirRight; } float GetAimDirForward() { return AimDirForward; }
+	float GetInputDirForward() { return InputDirForward; } float GetInputDirRight() { return InputDirRight; }
+	FVector GetHeadCameraLoc() { return HeadCameraLoc; } void SetHeadCameraLoc(FVector set) { HeadCameraLoc = set; }
 	bool IsMove = true;
 	bool IsPlayerCameraTurn = true;
+	bool IsPlayerRotationYawSpeedSlow = false;
+
+	class UPlayerUpper_StateBase* GetStateUpperN() { return StateUpperN; }
+	class UPlayerDown_StateBase* GetStateDownN() { return StateDownN; }
+	void SetStateUpperN(class UPlayerUpper_StateBase* state);
+	void SetStateDownN(class UPlayerDown_StateBase* state);
+	UClass* StateUpperBClass = nullptr; UClass* StateDownBClass = nullptr;   //전 상태에 대한 Class값 (AnimBP에서 사용하기 위해)
+	UClass* StateUpperNClass = nullptr; UClass* StateDownNClass = nullptr;   //전 상태에 대한 Class값 (AnimBP에서 사용하기 위해)
+	void UpperPress(class UPlayerUpper_StateBase* state);
+	void DownPress(class UPlayerDown_StateBase* state);
 
 private:
 	void Move(float DeltaSeconds);
 	FVector MoveDir = FVector::ZeroVector;
+	FVector HeadCameraLoc = FVector::ZeroVector;
 
+	class UPlayerDown_StateBase* StateDownN = nullptr;
+	class UPlayerUpper_StateBase* StateUpperN = nullptr;
 
 };
