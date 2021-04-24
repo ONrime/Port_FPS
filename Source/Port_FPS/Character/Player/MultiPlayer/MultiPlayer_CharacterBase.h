@@ -17,6 +17,14 @@ class PORT_FPS_API AMultiPlayer_CharacterBase : public APlayer_CharacterBase
 public:
 	AMultiPlayer_CharacterBase();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AloowPrivateAccess = "true"))
+	class USkeletalMeshComponent* BodyMesh;
+
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AloowPrivateAccess = "true"))
+		class USkeletalMeshComponent* GunMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AloowPrivateAccess = "true"))
+		class USkeletalMeshComponent* BodyMesh;*/
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void TurnAtRate(float Rate) override;

@@ -16,6 +16,10 @@ APlayer_CharacterBase::APlayer_CharacterBase()
 	static ConstructorHelpers::FClassFinder<UAnimInstance>FULLBODY_ANIMBP(TEXT("AnimBlueprint'/Game/PlayerFile/Animation/Body/AnimBP_Player_Down.AnimBP_Player_Down_C'"));
 	if (FULLBODY_ANIMBP.Succeeded()) { GetMesh()->SetAnimInstanceClass(FULLBODY_ANIMBP.Class); }*/
 
+	static ConstructorHelpers::FClassFinder<UAnimInstance>FULLBODY_ANIMBP(TEXT("AnimBlueprint'/Game/Player/Animation/Body/PlayerBody_AnimBP.PlayerBody_AnimBP_C'"));
+	if (FULLBODY_ANIMBP.Succeeded()) { GetMesh()->SetAnimInstanceClass(FULLBODY_ANIMBP.Class); }
+	bUseControllerRotationYaw = false;
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 65.0f));
@@ -52,6 +56,7 @@ APlayer_CharacterBase::APlayer_CharacterBase()
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;  // 컨트롤러 방향으로 캐릭터 회전(무브먼트 기준)
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 1000.0f, 0.0f); // 위설정시 속도 설정
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
+
 }
 
 void APlayer_CharacterBase::BeginPlay()
@@ -64,6 +69,7 @@ void APlayer_CharacterBase::BeginPlay()
 	StateDownNClass = StateDownN->GetState();
 	StateDownN->StateStart(this);
 	StateUpperN->StateStart(this);
+	IsPlayerCameraTurn = true;
 }
 
 void APlayer_CharacterBase::TurnAtRate(float Rate)
@@ -127,7 +133,8 @@ void APlayer_CharacterBase::MoveRight(float Value)
 
 void APlayer_CharacterBase::PlayerJump()
 {
-
+	bPressedJump = true;
+	JumpKeyHoldTime = 0.0f;
 }
 
 void APlayer_CharacterBase::PlayerCrouch()

@@ -16,6 +16,18 @@ void UPlayerBody_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (::IsValid(Pawn)) {
 		auto Player = Cast<APlayer_CharacterBase>(Pawn);
 
-		
+		PlayerSpeed = Player->PlayerSpeed;
+		IsAir = Player->GetMovementComponent()->IsFalling();
+		DirForward = Player->GetInputDirForward();
+		DirRight = Player->GetInputDirRight();;
+		AimDirForward = Player->GetAimDirForward();
+		AimDirRight = Player->GetAimDirRight();
+		Upper_Pitch = Player->GetUpper_Pitch();
+		Upper_Yaw = Player->GetUpper_Yaw();
+		Upper_Yaw2 = Player->GetUpper_Yaw2();
+		StateUpperNClass = Player->StateUpperNClass;
+		StateDownNClass = Player->StateDownNClass;
+		StateUpperBClass = Player ->StateUpperBClass;
+		StateDownBClass = Player->StateDownBClass;
 	}
 }
