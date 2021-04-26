@@ -31,9 +31,10 @@ void AMultiPlayer_CharacterBase::BeginPlay()
 	Super::BeginPlay();
 	BodyMesh->SetOwnerNoSee(true);
 	BodyMesh->SetCastShadow(true);
+	BodyMesh->bCastHiddenShadow = true;
 	GetMesh()->HideBoneByName(FName("spine_03"), PBO_None);
 	GetMesh()->SetOnlyOwnerSee(true);
-	GetMesh()->SetCastShadow(true);
+	GetMesh()->SetCastShadow(false);
 	//SetStateDownN(NewObject<UProne_M_PlayerDown_StateBase>(this, UProne_M_PlayerDown_StateBase::StaticClass()));
 	//GetStateDownN()->StateStart(this);
 }
