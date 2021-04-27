@@ -13,5 +13,14 @@ UCLASS()
 class PORT_FPS_API AMultiPlay_GM : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+    AMultiPlay_GM();
+
+protected:
+
+public:
+
+private:
+
 };

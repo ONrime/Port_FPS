@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "GameInfo_Instance.generated.h"
 
 /**
  * 
  */
+
+
+
 UCLASS()
 class PORT_FPS_API UGameInfo_Instance : public UGameInstance
 {
@@ -16,20 +20,36 @@ class PORT_FPS_API UGameInfo_Instance : public UGameInstance
 
 public:
 	UGameInfo_Instance();
-	virtual void Init() override;
 
 	DECLARE_EVENT(UGameInfo_Instance, FGameMenu);
-	DECLARE_EVENT_ThreeParams(UGameInfo_Instance, FGameLaunch, int32, FText, bool);
+	DECLARE_EVENT_ThreeParams(UGameInfo_Instance, FGameLaunch, int32, FName, bool);
+	DECLARE_EVENT_OneParam(UGameInfo_Instance, FJoinGame, IOnlineSessionPtr);
+	DECLARE_EVENT_OneParam(UGameInfo_Instance, FDestroyGame, class APlyaerController);
 
 protected:
+	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+
+	virtual void Init() override;
+	virtual void OnCreateSessionComplete(FName Server_Name, bool Succeeded);
+	virtual void OnCreateSessionComplete_Lobby(FName Server_Name, bool Succeeded);
+	virtual void OnJoinSessionComplete(FName Server_Name, EOnJoinSessionCompleteResult::Type type);
+	//virtual void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+	virtual void HandleNetworkError(ENetworkFailure::Type FailureType, bool bIsServer); // 네트워크 에러 처리 및 메세지 출력
+	virtual void HandleTravelError(ETravelFailure::Type FailureType); // 이동시 에러 처리 및 메세지 출력
+
+	UFUNCTION(BlueprintCallable)
+	void CreateServer(int32 Player_Num, FName Server_Name, bool IsLan);
 
 public:
 	FGameMenu ShowMainMenu;
 	FGameMenu ShowHostMenu;
 	FGameMenu ShowServerMenu;
 	FGameMenu ShowOptionMenu;
-	FGameMenu ShowLoddingScreen;
+	FGameMenu ShowLodingScreen;
 	FGameLaunch LaunchLobby;
+	FJoinGame JoinSession;
+	FDestroyGame DestroySessionCaller;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* MainMenu_WB;
@@ -39,26 +59,46 @@ public:
 		class UUserWidget* ServerMenu_WB;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* OptionMenu_WB;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
+		class UUserWidget* LodingScreen_WB;
 
 	TSubclassOf<class UUserWidget> MainMenu_Class; 
 	TSubclassOf<class UUserWidget> HostMenu_Class;
 	TSubclassOf<class UUserWidget> ServerMenu_Class;
 	TSubclassOf<class UUserWidget> OptionMenu_Class;
+	TSubclassOf<class UUserWidget> LodingScreen_Class;
+
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Show_MainMenu();  // 메인 메뉴 화면 전환 and 마우스 활성화
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Show_HostMenu();  // 호스트 메뉴 화면 전환 and 마우스 활성화
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Show_ServerMenu();  // 서버 메뉴 화면 전환 and 마우스 활성화
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Show_OptionMenu();  // 옵션 메뉴 화면 전환 and 마우스 활성화
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Launch_Lobby(int32 Player_Num, FName Server_Name, bool IsLan);  // 로비를 시작하고 호스트를 세팅한다.
+	//UFUNCTION(BlueprintCallable, Category = "Event")
+	void Join_Server(IOnlineSessionPtr Sessions);  // 서버에 들어가기
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Show_LodingScreen(); // 요구시 로딩 화면 출력
+	//UFUNCTION(BlueprintCallable, Category = "Event")
+	void Destroy_SessionCaller(class APlayerController PC); // 호출 시 세션 파괴
 
 private:
 
-	void Show_MainMenu();  // 메인 메뉴 화면 전환 and 마우스 활성화
-	void Show_HostMenu();  // 호스트 메뉴 화면 전환 and 마우스 활성화
-	void Show_ServerMenu();  // 서버 메뉴 화면 전환 and 마우스 활성화
-	void Option_Menu();  // 옵션 메뉴 화면 전환 and 마우스 활성화
-	void Launch_Lobby(int32 Player_Num, FText Server_Name, bool IsLan);  // 로비 메뉴 활성화
-	void Show_LoddingScreen();  // 로비 메뉴 활성화
-
 	
+
+	FName LobbyName = "LobbyMap";
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "ServerSetting", meta = (AllowPrivateAccess = "true"))
 	int32 MaxPlayer = 0;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "ServerSetting", meta = (AllowPrivateAccess = "true"))
-	FText ServerName;
+	FName ServerName;
+
+	UFUNCTION(BlueprintPure)
+	FString NetErrorToString(ENetworkFailure::Type FailureType);
+	UFUNCTION(BlueprintPure)
+	FString TravelErrorToString(ETravelFailure::Type FailureType);
 
 };

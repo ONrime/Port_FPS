@@ -14,4 +14,13 @@ class PORT_FPS_API ALoby_GM : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	ALoby_GM();
+
+protected:
+
+public:
+
+private:
+
 };
