@@ -58,7 +58,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* ServerMenu_WB;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
-		class UUserWidget* OptionMenu_WB;
+		class UOptionMenu_UserWidget* OptionMenu_WB;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* LodingScreen_WB;
 
@@ -84,12 +84,14 @@ public:
 	void Show_LodingScreen(); // 요구시 로딩 화면 출력
 	//UFUNCTION(BlueprintCallable, Category = "Event")
 	void Destroy_SessionCaller(class APlayerController PC); // 호출 시 세션 파괴
+	UFUNCTION(BlueprintCallable, Category = "Event")
+	void Check_SaveGame();  // 저장 파일 확인 하기
 
 private:
-
-	
-
 	FName LobbyName = "LobbyMap";
+	FString PlayerSettingsSave = "PlayerSettingsSave";
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Check", meta = (AllowPrivateAccess = "true"))
+	bool IsCreateSaveFile = false;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "ServerSetting", meta = (AllowPrivateAccess = "true"))
 	int32 MaxPlayer = 0;

@@ -13,5 +13,5 @@ AMainMenu_LevelScriptActor::AMainMenu_LevelScriptActor()
 void AMainMenu_LevelScriptActor::BeginPlay()
 {
 	auto GameIns = Cast<UGameInfo_Instance>(GetGameInstance());
-	GameIns->ShowMainMenu.Broadcast();
+	GameIns->Check_SaveGame();
 }

@@ -18,7 +18,7 @@ class PORT_FPS_API UPlayerInfo_SaveGame : public USaveGame
 public:
 	UPlayerInfo_SaveGame();
 
-	UPROPERTY(Replicated)
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite)
 	FPlayerInfo S_PlayerInfo;
 
 protected:

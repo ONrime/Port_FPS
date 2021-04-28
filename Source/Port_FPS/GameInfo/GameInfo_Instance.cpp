@@ -11,6 +11,8 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
+#include "Components/SlateWrapperTypes.h"
+#include "OptionMenu_UserWidget.h"
 
 
 UGameInfo_Instance::UGameInfo_Instance()
@@ -22,7 +24,7 @@ UGameInfo_Instance::UGameInfo_Instance()
 	if (HOSTMENU_WIDGET.Succeeded()) HostMenu_Class = HOSTMENU_WIDGET.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> SERVERMENU_WIDGET(TEXT("WidgetBlueprint'/Game/UI/MainMenu/ServerMenu.ServerMenu_C'"));
 	if (SERVERMENU_WIDGET.Succeeded()) ServerMenu_Class = SERVERMENU_WIDGET.Class;
-	static ConstructorHelpers::FClassFinder<UUserWidget> OPTIONMENU_WIDGET(TEXT("WidgetBlueprint'/Game/UI/MainMenu/OptionsMenu.OptionsMenu_C'"));
+	static ConstructorHelpers::FClassFinder<UOptionMenu_UserWidget> OPTIONMENU_WIDGET(TEXT("WidgetBlueprint'/Game/UI/MainMenu/OptionsMenu.OptionsMenu_C'"));
 	if (OPTIONMENU_WIDGET.Succeeded()) OptionMenu_Class = OPTIONMENU_WIDGET.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> LOADINGSCREEN_WIDGET(TEXT("WidgetBlueprint'/Game/UI/Levels/LoadingScreen.LoadingScreen_C'"));
 	if (LOADINGSCREEN_WIDGET.Succeeded()) LodingScreen_Class = LOADINGSCREEN_WIDGET.Class;
@@ -141,10 +143,17 @@ void UGameInfo_Instance::Show_OptionMenu()
 {
 	auto PlayerContoller = GetFirstLocalPlayerController();
 	if (OptionMenu_WB == nullptr) {
-		OptionMenu_WB = CreateWidget<UUserWidget>(PlayerContoller, OptionMenu_Class);
+		OptionMenu_WB = CreateWidget<UOptionMenu_UserWidget>(PlayerContoller, OptionMenu_Class);
 	}
 	OptionMenu_WB->AddToViewport();
 	PlayerContoller->bShowMouseCursor = true;
+
+	if (!IsCreateSaveFile) {
+		OptionMenu_WB->WelcomeMessageVis = ESlateVisibility::Visible;
+	}
+	else {
+		OptionMenu_WB->WelcomeMessageVis = ESlateVisibility::Hidden;
+	}
 }
 
 void UGameInfo_Instance::Launch_Lobby(int32 Player_Num, FName Server_Name, bool IsLan)
@@ -181,6 +190,19 @@ void UGameInfo_Instance::Show_LodingScreen()
 void UGameInfo_Instance::Destroy_SessionCaller(APlayerController PC)
 {
 	// DestroySession() 작성하기
+}
+
+void UGameInfo_Instance::Check_SaveGame()
+{
+	if (UGameplayStatics::DoesSaveGameExist(PlayerSettingsSave, 0)) {
+		Show_MainMenu();
+		IsCreateSaveFile = true;
+	}
+	else {
+		Show_OptionMenu();
+		auto PlayerContoller = GetFirstLocalPlayerController();
+		PlayerContoller->bShowMouseCursor = true;
+	}
 }
 
 FString UGameInfo_Instance::NetErrorToString(ENetworkFailure::Type FailureType)
