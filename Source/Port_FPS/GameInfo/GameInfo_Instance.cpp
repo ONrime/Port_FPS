@@ -39,6 +39,7 @@ void UGameInfo_Instance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnCreateSessionComplete);
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnCreateSessionComplete_Lobby);
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnJoinSessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnFindSessionsComplete);
 		}
 	}
 
@@ -70,6 +71,7 @@ void UGameInfo_Instance::OnCreateSessionComplete_Lobby(FName Server_Name, bool S
 
 void UGameInfo_Instance::OnJoinSessionComplete(FName Server_Name, EOnJoinSessionCompleteResult::Type type)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("OnJoinSessionComplete"));
 	UE_LOG(LogTemp, Warning, TEXT("OnJoinSessionComplete: Succeeded %d"), type);
 	if (type == EOnJoinSessionCompleteResult::Success) {
 		UE_LOG(LogTemp, Warning, TEXT("OnJoinSessionComplete: Succeeded"));
@@ -77,6 +79,29 @@ void UGameInfo_Instance::OnJoinSessionComplete(FName Server_Name, EOnJoinSession
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("OnJoinSessionComplete: Failed"));
 	}
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0)) {
+		FString JoinAddress = "";
+		SessionInterface->GetResolvedConnectString(Server_Name, JoinAddress);
+		PC->ClientTravel(JoinAddress, ETravelType::TRAVEL_Absolute);
+	}
+}
+
+void UGameInfo_Instance::OnFindSessionsComplete(bool Succeeded)
+{
+	
+	UE_LOG(LogTemp, Warning, TEXT("OnFindSessionsComplete: Succeeded %d"), Succeeded);
+	if (Succeeded) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("OnFindSessionsSucceeded"));
+		SessionsNum = SessionSearch->SearchResults.Num();
+		IsFindServer = true;
+		//Join_Server();
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("OnFindSessionsFailed"));
+		IsFindServer = false;
+		//FindSessionFaild.Broadcast();
+	}
+
 }
 
 /*void UGameInfo_Instance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
@@ -96,19 +121,21 @@ void UGameInfo_Instance::HandleTravelError(ETravelFailure::Type FailureType)
 	UE_LOG(LogTemp, Warning, TEXT("TravelError: %s"), *TravelErrorToString(FailureType));
 }
 
-void UGameInfo_Instance::CreateServer(int32 Player_Num, FName Server_Name, bool IsLan)
+void UGameInfo_Instance::CreateServer(int32 Player_Num, FName Server_Name, bool Lan)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("CreateServer"));
 	UE_LOG(LogTemp, Warning, TEXT("CreateServer"));
 	FOnlineSessionSettings SessionSettings;
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bIsDedicated = false;
-	SessionSettings.bIsLANMatch = IsLan;
+	SessionSettings.bIsLANMatch = false;
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = 5;
 
-	SessionInterface->CreateSession(Player_Num, Server_Name, SessionSettings);
+	SessionInterface->CreateSession(Player_Num, "test", SessionSettings);
 }
+
 
 
 void UGameInfo_Instance::Show_MainMenu()
@@ -156,26 +183,40 @@ void UGameInfo_Instance::Show_OptionMenu()
 	}
 }
 
-void UGameInfo_Instance::Launch_Lobby(int32 Player_Num, FName Server_Name, bool IsLan)
+void UGameInfo_Instance::Launch_Lobby(int32 Player_Num, FName Server_Name, bool Lan)
 {
 	MaxPlayer = Player_Num;
 	ServerName = Server_Name;
 	if (ShowLodingScreen.IsBound()) {
 		ShowLodingScreen.Broadcast();
-		CreateServer(Player_Num, Server_Name, IsLan);
+		CreateServer(Player_Num, Server_Name, Lan);
 	}
 }
 
-void UGameInfo_Instance::Join_Server(IOnlineSessionPtr Sessions)
+void UGameInfo_Instance::Join_Server()
 {
-	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	SessionSearch->bIsLanQuery = true; //lan 체크
-	SessionSearch->MaxSearchResults = 1000;
-	if (ShowLodingScreen.IsBound()) {
+	/*if (ShowLodingScreen.IsBound()) {
 		ShowLodingScreen.Broadcast();
 		// Sessions, SessionInterface중에 하나 JoinSession 세팅하기 
-		Sessions->FindSessions(0, SessionSearch.ToSharedRef());
+		
+	}*/
+	TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
+	UE_LOG(LogTemp, Warning, TEXT("SearchResults Count: %d"), SearchResults.Num());
+	if (SearchResults.Num()) {
+		//ServerName= SearchResults[0]->
+		SessionInterface->JoinSession(0, "None", SearchResults[0]);
 	}
+}
+
+void UGameInfo_Instance::Find_Server()
+{
+	SessionSearch.Reset();
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	SessionSearch->bIsLanQuery = IsLan; //lan 체크
+	SessionSearch->MaxSearchResults = 20;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
 void UGameInfo_Instance::Show_LodingScreen()

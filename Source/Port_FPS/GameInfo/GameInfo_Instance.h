@@ -10,8 +10,7 @@
 /**
  * 
  */
-
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSessionDelegate);
 
 UCLASS()
 class PORT_FPS_API UGameInfo_Instance : public UGameInstance
@@ -34,12 +33,13 @@ protected:
 	virtual void OnCreateSessionComplete(FName Server_Name, bool Succeeded);
 	virtual void OnCreateSessionComplete_Lobby(FName Server_Name, bool Succeeded);
 	virtual void OnJoinSessionComplete(FName Server_Name, EOnJoinSessionCompleteResult::Type type);
+	virtual void OnFindSessionsComplete(bool Succeeded);
 	//virtual void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 	virtual void HandleNetworkError(ENetworkFailure::Type FailureType, bool bIsServer); // 네트워크 에러 처리 및 메세지 출력
 	virtual void HandleTravelError(ETravelFailure::Type FailureType); // 이동시 에러 처리 및 메세지 출력
 
 	UFUNCTION(BlueprintCallable)
-	void CreateServer(int32 Player_Num, FName Server_Name, bool IsLan);
+	void CreateServer(int32 Player_Num, FName Server_Name, bool Lan);
 
 public:
 	FGameMenu ShowMainMenu;
@@ -50,6 +50,9 @@ public:
 	FGameLaunch LaunchLobby;
 	FJoinGame JoinSession;
 	FDestroyGame DestroySessionCaller;
+
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
+	FSessionDelegate FindSessionFaild;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* MainMenu_WB;
@@ -77,9 +80,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Event")
 	void Show_OptionMenu();  // 옵션 메뉴 화면 전환 and 마우스 활성화
 	UFUNCTION(BlueprintCallable, Category = "Event")
-	void Launch_Lobby(int32 Player_Num, FName Server_Name, bool IsLan);  // 로비를 시작하고 호스트를 세팅한다.
+	void Launch_Lobby(int32 Player_Num, FName Server_Name, bool Lan);  // 로비를 시작하고 호스트를 세팅한다.
 	//UFUNCTION(BlueprintCallable, Category = "Event")
-	void Join_Server(IOnlineSessionPtr Sessions);  // 서버에 들어가기
+	void Join_Server();  // 서버에 들어가기
+	void Find_Server();  // 서버 찾기
 	UFUNCTION(BlueprintCallable, Category = "Event")
 	void Show_LodingScreen(); // 요구시 로딩 화면 출력
 	//UFUNCTION(BlueprintCallable, Category = "Event")
@@ -92,6 +96,12 @@ private:
 	FString PlayerSettingsSave = "PlayerSettingsSave";
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Check", meta = (AllowPrivateAccess = "true"))
 	bool IsCreateSaveFile = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Check", meta = (AllowPrivateAccess = "true"))
+	bool IsLan = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Check", meta = (AllowPrivateAccess = "true"))
+	bool IsFindServer = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Check", meta = (AllowPrivateAccess = "true"))
+	int32 SessionsNum = 0;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "ServerSetting", meta = (AllowPrivateAccess = "true"))
 	int32 MaxPlayer = 0;
