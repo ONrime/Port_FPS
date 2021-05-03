@@ -5,11 +5,12 @@
 #include "Port_FPS/Character/Player/PlayerState/PlayerStateBase.h"
 #include "Port_FPS/Character/Player/PlayerState/Aim_PlayerUpper_StateBase.h"
 #include "Port_FPS/Character/Player/PlayerState/Standing_PlayerDown_StateBase.h"
+#include "Net/UnrealNetwork.h"
 
 APlayer_CharacterBase::APlayer_CharacterBase()
 {
 	//GetCapsuleComponent()->SetCollisionProfileName("");
-	
+	bReplicates = true;
 	//GetMesh()->SetCollisionProfileName("");
 	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh>FULLBODY_SKELETALMESH(TEXT("SkeletalMesh'/Game/PlayerFile/Mesh/SC_Cyborg_Soldier_V3.SC_Cyborg_Soldier_V3'"));
 	if (FULLBODY_SKELETALMESH.Succeeded()) { GetMesh()->SetSkeletalMesh(FULLBODY_SKELETALMESH.Object); }
@@ -105,6 +106,7 @@ void APlayer_CharacterBase::MoveForward(float Value)
 			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 			FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
+			DirMoveForwerd = Direction;
 			Direction.Z = 0.0f;
 			Direction.Normalize();
 			MoveDir += Direction * FMath::Clamp(Value, -1.0f, 1.0f);
@@ -239,3 +241,17 @@ void APlayer_CharacterBase::Move(float DeltaSeconds)
 		//MoveDir.Set(0.0f, 0.0f, 0.0f);
 	}
 }
+
+/*void APlayer_CharacterBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	UE_LOG(LogTemp, Warning, TEXT("GetLifetimeReplicatedProps"));
+	/*DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Pitch, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Yaw, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Yaw2, COND_SkipOwner);
+
+	//DOREPLIFETIME(APlayer_CharacterBase, Upper_Pitch);
+	//DOREPLIFETIME(APlayer_CharacterBase, Upper_Yaw);
+	//DOREPLIFETIME(APlayer_CharacterBase, Upper_Yaw2);
+
+}*/

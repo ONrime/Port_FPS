@@ -26,6 +26,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Base, Meta = (AllowPrivateAccess = true))
 	bool IsAir = false;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Base, Meta = (AllowPrivateAccess = true))
+	float DirMove = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Base, Meta = (AllowPrivateAccess = true))
 	float DirForward = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Base, Meta = (AllowPrivateAccess = true))
 	float DirRight = 0.0f;
@@ -48,5 +50,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State, Meta = (AllowPrivateAccess = true))
 	UClass* StateDownBClass = nullptr;
 	
-	
+
+
+
 };

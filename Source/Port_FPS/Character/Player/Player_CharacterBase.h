@@ -40,16 +40,22 @@ protected:
 	virtual void PlayerJump();
 	virtual void PlayerCrouch();
 
-	float Upper_Pitch = 0.0f, Upper_Yaw = 0.0f, Upper_Yaw2 = 0.0f; // 하체고정시 상체 회전 값 yaw2는 90도 정제 없이 180도 기준으로 출력
+	//UPROPERTY(Replicated)
+	float Upper_Pitch = 0.0f;
+	//UPROPERTY(Replicated)
+	float Upper_Yaw = 0.0f;
+	//UPROPERTY(Replicated)
+	float Upper_Yaw2 = 0.0f; // 하체고정시 상체 회전 값 yaw2는 90도 정제 없이 180도 기준으로 출력
 	float AimDirRight = 0.0f, AimDirForward = 0.0f; // 컨트롤러로 부터 받은 시점 키값 (AnimBP에서 사용하기 위해)
-	float InputDirForward = 0.0f, InputDirRight = 0.0f; // 컨트롤러로 부터 받은 이동 키값 (AnimBP에서 사용하기 위해)
+	float InputDirForward = 0.0f;
+	float InputDirRight = 0.0f; // 컨트롤러로 부터 받은 이동 키값 (AnimBP에서 사용하기 위해)
 	
 
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PostInitializeComponents() override;
-
+	FVector DirMoveForwerd = FVector::ZeroVector;
 	// Base
 	float GetUpper_Pitch() { return Upper_Pitch; }
 	float GetUpper_Yaw() { return Upper_Yaw; } float GetUpper_Yaw2() { return Upper_Yaw2; }

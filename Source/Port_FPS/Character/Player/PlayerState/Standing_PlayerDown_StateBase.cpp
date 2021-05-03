@@ -5,6 +5,7 @@
 #include "Port_FPS/Character/Player/PlayerState/Crouch_PlayerDown_StateBase.h"
 #include "GameFramework/PlayerInput.h"
 #include "GameFramework/PlayerController.h"
+#include "Port_FPS/Character/Player/MultiPlayer/MultiPlayer_CharacterBase.h"
 
 UStanding_PlayerDown_StateBase::UStanding_PlayerDown_StateBase()
 {
@@ -54,6 +55,8 @@ UClass* UStanding_PlayerDown_StateBase::GetState()
 
 void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBase, float Rate)
 {
+	auto PlayerM = Cast<AMultiPlayer_CharacterBase>(PlayerBase);
+
 	float Deltatime = GetWorld()->GetDeltaSeconds();
 	float Pitch = PlayerBase->GetUpper_Pitch();
 	float Yaw = PlayerBase->GetUpper_Yaw();
