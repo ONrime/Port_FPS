@@ -6,11 +6,12 @@
 #include "Port_FPS/Character/Player/PlayerState/Aim_PlayerUpper_StateBase.h"
 #include "Port_FPS/Character/Player/PlayerState/Standing_PlayerDown_StateBase.h"
 #include "Port_FPS/Character/Player/PlayerState/MultiPlayer_State/Prone_M_PlayerDown_StateBase.h"
-#include "Net/UnrealNetwork.h"
+
 
 AMultiPlayer_CharacterBase::AMultiPlayer_CharacterBase()
 {
-	bReplicates = true;
+	//bReplicates = true;
+	SetReplicates(true);
 	BodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BODY"));
 	BodyMesh->SetupAttachment(RootComponent);
 	BodyMesh->SetRelativeLocation(FVector(-20.0f, 0.0f, -97.0f));
@@ -25,6 +26,7 @@ AMultiPlayer_CharacterBase::AMultiPlayer_CharacterBase()
 	
 	SpringArm->SetRelativeScale3D(FVector(0.2f, 0.2f, 0.2f));
 	//GetMesh()->bOnlyOwnerSee = true;
+	
 
 }
 
@@ -60,6 +62,12 @@ void AMultiPlayer_CharacterBase::PlayerJump()
 	Super::PlayerJump();
 }
 
+void AMultiPlayer_CharacterBase::PlayerCrouch()
+{
+	Super::PlayerCrouch();
+	
+}
+
 void AMultiPlayer_CharacterBase::MoveForward(float Value)
 {
 	Super::MoveForward(Value);
@@ -68,6 +76,17 @@ void AMultiPlayer_CharacterBase::MoveForward(float Value)
 void AMultiPlayer_CharacterBase::MoveRight(float Value)
 {
 	Super::MoveRight(Value);
+}
+
+void AMultiPlayer_CharacterBase::PlayerInputTest()
+{
+	if (HasAuthority()) {
+		UE_LOG(LogTemp, Warning, TEXT("Server_: PlayerInputTest"));
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Cla_: PlayerInputTest"));
+		//Server_PlayerRotation(PlayerRotationYawSpeed, PlayerRotationYaw);
+	}
 }
 
 
@@ -80,29 +99,44 @@ void AMultiPlayer_CharacterBase::Server_Update_PitchAndYaw_Implementation(float 
 {
 	///UE_LOG(LogTemp, Warning, TEXT("Cla_Update: Pitch %f"), Pitch);
 	PitchAndYaw();
-	testd++;
-	UE_LOG(LogTemp, Warning, TEXT("Cla_Update: %s Upper_Pitch2 %f"), *GetName(), testd);
+	//testd++;
+	//UE_LOG(LogTemp, Warning, TEXT("Cla_Update: %s Upper_Pitch2 %f"), *GetName(), testd);
+}
+
+bool AMultiPlayer_CharacterBase::Server_PlayerRotation_Validate(float PlayerRotationSpeed, float PlayerYaw)
+{
+	return true;
+}
+
+void AMultiPlayer_CharacterBase::Server_PlayerRotation_Implementation(float PlayerRotationSpeed, float PlayerYaw)
+{
+	PlayerRotationYaw = PlayerYaw;
+	PlayerRotationYawSpeed = PlayerRotationSpeed;
+	
 }
 
 void AMultiPlayer_CharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	PitchAndYaw();
 
-	if (HasAuthority()) { // 서버
-		//UE_LOG(LogTemp, Warning, TEXT("Server_Update: Pitch %f"), Upper_Pitch);
-		testd++;
-		UE_LOG(LogTemp, Warning, TEXT("Server_Update: %s Upper_Pitch2 %f"),*GetName(), testd);
-		PitchAndYaw();
-	}
-	else {  // 클라이언트
-		Server_Update_PitchAndYaw_Implementation(Upper_Pitch, Upper_Yaw, Upper_Yaw2);
+	if (HasAuthority()) { // 플레이어 전체 회전 (서버)
 		
 	}
+	else { // (클라이언트)
+		if (IsLocallyControlled()) {
+			Server_PlayerRotation(PlayerRotationYawSpeed, PlayerRotationYaw);
+		}
+	}
+	SetActorRelativeRotation(FRotator(0.0f, PlayerRotationYaw, 0.0f));
 }
 
 void AMultiPlayer_CharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	PlayerInputComponent->BindAction("Testput", IE_Pressed, this, &AMultiPlayer_CharacterBase::PlayerInputTest);
+
 }
 
 void AMultiPlayer_CharacterBase::PostInitializeComponents()
@@ -134,5 +168,8 @@ void AMultiPlayer_CharacterBase::GetLifetimeReplicatedProps(TArray< FLifetimePro
 
 	//DOREPLIFETIME(AMultiPlayer_CharacterBase, Upper_Pitch2)
 	DOREPLIFETIME(AMultiPlayer_CharacterBase, testd);
+
+	DOREPLIFETIME_CONDITION(AMultiPlayer_CharacterBase, PlayerRotationYawSpeed, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(AMultiPlayer_CharacterBase, PlayerRotationYaw, COND_SkipOwner);
 
 }

@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerInput.h"
 #include "GameFramework/PlayerController.h"
 #include "Port_FPS/Character/Player/MultiPlayer/MultiPlayer_CharacterBase.h"
+#include "Net/UnrealNetwork.h"
 
 UStanding_PlayerDown_StateBase::UStanding_PlayerDown_StateBase()
 {
@@ -89,9 +90,11 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 			PlayerBase->SetProneYaw(SProneYaw);
 			PlayerRotationYawSpeed = 200.0f;
 		}*/
-
 		PlayerRotationYaw = FMath::RInterpTo(PlayerBase->GetActorRotation(), PlayerBase->Controller->GetControlRotation(), GetWorld()->DeltaTimeSeconds, PlayerRotationYawSpeed).Yaw;
-		PlayerBase->SetActorRelativeRotation(FRotator(0.0f, PlayerRotationYaw, 0.0f));
+
+		PlayerM->PlayerRotationYaw = PlayerRotationYaw;
+		PlayerM->PlayerRotationYawSpeed = PlayerRotationYawSpeed;
+
 		PlayerBase->AddControllerYawInput(Rate * PlayerBase->BaseTurnRate * GetWorld()->GetDeltaSeconds());
 		PlayerBase->SpringArm->SetRelativeRotation(FRotator(0.0f, PlayerBase->Controller->GetControlRotation().Yaw, 0.0f));
 		//UE_LOG(LogTemp, Warning, TEXT("PlayerRotationYaw: %f"), PlayerRotationYaw);
@@ -124,7 +127,22 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 	PlayerBase->SetHeadCameraLoc(FVector(HeadCameraLoc.X, HeadCameraLoc.Y
 		, FMath::FInterpTo(PlayerBase->GetHeadCameraLoc().Z, 50.0f, GetWorld()->GetDeltaSeconds(), 5.0f)));
 
+
 }
+
+/*bool UStanding_PlayerDown_StateBase::Server_PlayerRotation_Validate(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw)
+{
+	return true;
+}
+
+void UStanding_PlayerDown_StateBase::Server_PlayerRotation_Implementation(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw)
+{
+	if (PlayerBase) {
+		PlayerYaw = FMath::RInterpTo(PlayerBase->GetActorRotation(), PlayerBase->Controller->GetControlRotation(), GetWorld()->DeltaTimeSeconds, PlayerRotationSpeed).Yaw;
+		PlayerBase->SetActorRelativeRotation(FRotator(0.0f, PlayerYaw, 0.0f));
+	}
+	
+}*/
 
 bool UStanding_PlayerDown_StateBase::CheckLoc(FVector now, FVector target, float min)
 {
@@ -133,3 +151,15 @@ bool UStanding_PlayerDown_StateBase::CheckLoc(FVector now, FVector target, float
 	}
 	return false;
 }
+
+/*void UStanding_PlayerDown_StateBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//DOREPLIFETIME_CONDITION(AMultiPlayer_CharacterBase, Upper_Pitch, COND_SkipOwner);
+	//DOREPLIFETIME(AMultiPlayer_CharacterBase, Upper_Pitch);
+
+	DOREPLIFETIME(UStanding_PlayerDown_StateBase, PlayerRotationYawSpeed);
+	DOREPLIFETIME(UStanding_PlayerDown_StateBase, PlayerRotationYaw);
+
+}*/
