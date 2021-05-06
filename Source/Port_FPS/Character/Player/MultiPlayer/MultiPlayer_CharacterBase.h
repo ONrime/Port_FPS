@@ -28,6 +28,15 @@ public:
 
 	void PlayerInputTest();
 
+
+
+	UPROPERTY(Replicated)
+		float M_Upper_Yaw = 0.0f;
+	UPROPERTY(Replicated)
+		float M_Upper_Yaw2 = 0.0f;
+	UPROPERTY(Replicated)
+		float M_Upper_Pitch = 0.0f;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void TurnAtRate(float Rate) override;
@@ -38,12 +47,6 @@ protected:
 	virtual void MoveRight(float Value) override;
 	
 
-	/*UPROPERTY(Replicated)
-	float Upper_Pitch = 0.0f;
-	UPROPERTY(Replicated)
-	float Upper_Yaw = 0.0f;
-	UPROPERTY(Replicated)
-	float Upper_Yaw2 = 0.0f; // 하체고정시 상체 회전 값 yaw2는 90도 정제 없이 180도 기준으로 출력*/
 
 	//UPROPERTY(Replicated)
 	//float Upper_Pitch2 = 0.0f;
@@ -51,13 +54,12 @@ protected:
 	
 
 	UFUNCTION(Reliable, Server, WithValidation)
-	void Server_Update_PitchAndYaw(float Pitch, float Yawm, float Yaw2);
-	bool Server_Update_PitchAndYaw_Validate(float Pitch, float Yawm, float Yaw2);
-	void Server_Update_PitchAndYaw_Implementation(float Pitch, float Yawm, float Yaw2);
+	void Server_Update_PlayerMove(FVector Dir, float DirInput);
+	bool Server_Update_PlayerMove_Validate(FVector Dir, float DirInput);
+	void Server_Update_PlayerMove_Implementation(FVector Dir, float Input);
 
 	UFUNCTION(Server, WithValidation, Reliable)// 서버에서만 호출되도록 지정
 	void Server_PlayerRotation(float PlayerRotationSpeed, float PlayerYaw);
-
 	void Server_PlayerRotation_Implementation(float PlayerRotationSpeed, float PlayerYaw);
 	bool Server_PlayerRotation_Validate(float PlayerRotationSpeed, float PlayerYaw);
 	

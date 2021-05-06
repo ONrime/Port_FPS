@@ -26,15 +26,8 @@ public:
 
 protected:
 
-	/*UFUNCTION(Server, Reliable, WithValidation) // 서버에서만 호출되도록 지정
-	void Server_PlayerRotation(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw);
-	bool Server_PlayerRotation_Validate(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw);
-	void Server_PlayerRotation_Implementation(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw);*/
-
 private:
-	//UPROPERTY(Replicated)
 	float PlayerRotationYawSpeed = 0.0f;
-	//UPROPERTY(Replicated)
 	float PlayerRotationYaw = 0.0f;
 
 	FVector DodgeNowLoc = FVector::ZeroVector;

@@ -39,17 +39,19 @@ protected:
 	virtual void MoveRight(float Value);
 	virtual void PlayerJump();
 	virtual void PlayerCrouch();
+	void Move(float DeltaSeconds);
 
-	//UPROPERTY(Replicated)
+	UPROPERTY(Replicated)
 	float Upper_Pitch = 0.0f;
-	//UPROPERTY(Replicated)
+	UPROPERTY(Replicated)
 	float Upper_Yaw = 0.0f;
-	//UPROPERTY(Replicated)
+	UPROPERTY(Replicated)
 	float Upper_Yaw2 = 0.0f; // 하체고정시 상체 회전 값 yaw2는 90도 정제 없이 180도 기준으로 출력
 	float AimDirRight = 0.0f, AimDirForward = 0.0f; // 컨트롤러로 부터 받은 시점 키값 (AnimBP에서 사용하기 위해)
 	float InputDirForward = 0.0f;
 	float InputDirRight = 0.0f; // 컨트롤러로 부터 받은 이동 키값 (AnimBP에서 사용하기 위해)
-	
+	FVector MoveDir = FVector::ZeroVector;
+	float InputDir = 0.0f;
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -76,9 +78,8 @@ public:
 	void DownPress(class UPlayerDown_StateBase* state);
 
 private:
-	void Move(float DeltaSeconds);
-	FVector MoveDir = FVector::ZeroVector;
 	FVector HeadCameraLoc = FVector::ZeroVector;
+	
 
 	class UPlayerDown_StateBase* StateDownN = nullptr;
 	class UPlayerUpper_StateBase* StateUpperN = nullptr;

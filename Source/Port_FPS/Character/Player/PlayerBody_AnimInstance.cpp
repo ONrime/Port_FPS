@@ -40,19 +40,7 @@ void UPlayerBody_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		AimDirForward = Player->GetAimDirForward();
 		AimDirRight = Player->GetAimDirRight();
 
-		if (Player->HasAuthority()) {
-			//로컬 붙이기?
-			//FRotator InterpToAngle_Pitch = FMath::RInterpTo(FRotator(Upper_Pitch, 0.0f, 0.0f), ((Player->GetControlRotation() - Player->GetActorRotation()).GetNormalized()), GetWorld()->DeltaTimeSeconds, 500.0f);
-			//Upper_Pitch = FMath::ClampAngle(InterpToAngle_Pitch.Pitch, -90.0f, 90.0f);
-			auto PlayerM = Cast<AMultiPlayer_CharacterBase>(Pawn);
-			//Upper_Pitch = Player->GetUpper_Pitch();
-			//FRotator InterpToAngle_Yaw = FMath::RInterpTo(FRotator(0.0f, Upper_Yaw, 0.0f), ((Player->GetControlRotation() - Player->GetActorRotation()).GetNormalized()), GetWorld()->DeltaTimeSeconds, 500.0f);
-			//Upper_Yaw = FMath::ClampAngle(InterpToAngle_Yaw.Yaw, -90.0f, 90.0f);
-			//Upper_Yaw = Player->GetUpper_Yaw();
-			//Upper_Yaw2 = Player->GetUpper_Yaw2();
-			//Upper_Yaw = Player->GetUpper_Yaw();
-		}
-
+		auto PlayerM = Cast<AMultiPlayer_CharacterBase>(Pawn);
 		Upper_Pitch = Player->GetUpper_Pitch();
 		Upper_Yaw = Player->GetUpper_Yaw();
 		Upper_Yaw2 = Player->GetUpper_Yaw2();
@@ -63,11 +51,3 @@ void UPlayerBody_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		StateDownBClass = Player->StateDownBClass;
 	}
 }
-
-/*void UPlayerBody_AnimInstance::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UPlayerBody_AnimInstance, Upper_Yaw);
-	DOREPLIFETIME(UPlayerBody_AnimInstance, Upper_Pitch);
-}*/

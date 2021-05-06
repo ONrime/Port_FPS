@@ -29,7 +29,7 @@ APlayer_CharacterBase::APlayer_CharacterBase()
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bInheritPitch = true;
 	SpringArm->bInheritRoll = false;
-	SpringArm->bInheritYaw = false;
+	SpringArm->bInheritYaw = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	FollowCamera->SetupAttachment(SpringArm);
@@ -55,8 +55,10 @@ APlayer_CharacterBase::APlayer_CharacterBase()
 	GetCharacterMovement()->JumpZVelocity = 500.0f;
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;  // 컨트롤러 방향으로 캐릭터 회전(무브먼트 기준)
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 1000.0f, 0.0f); // 위설정시 속도 설정
+	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 1000.0f, 0.0f); // 위설정시 속도 설정
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
+	//GetCharacterMovement()->MaxWalkSpeed = 700.0f;
+
 
 }
 
@@ -151,7 +153,7 @@ void APlayer_CharacterBase::Tick(float DeltaTime)
 	StateDownN->StateUpdate(this);
 	StateUpperN->StateUpdate(this);
 
-	Move(DeltaTime);
+	//Move(DeltaTime);
 
 	SpringArm->SetRelativeLocation(FVector(HeadCameraLoc.X, HeadCameraLoc.Y, HeadCameraLoc.Z));
 }
@@ -231,7 +233,7 @@ void APlayer_CharacterBase::Move(float DeltaSeconds)
 		//UE_LOG(LogTemp, Warning, TEXT("PlayerSpeed: %f"), PlayerSpeed);
 		MoveDir.Normalize();
 
-		float InputDir = 0.0f;
+		//float InputDir = 0.0f;
 		if (FMath::Abs(InputDirForward) > FMath::Abs(InputDirRight)) {
 			InputDir = FMath::Abs(InputDirForward);
 		}
@@ -242,16 +244,15 @@ void APlayer_CharacterBase::Move(float DeltaSeconds)
 	}
 }
 
-/*void APlayer_CharacterBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+void APlayer_CharacterBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	UE_LOG(LogTemp, Warning, TEXT("GetLifetimeReplicatedProps"));
-	/*DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Pitch, COND_SkipOwner);
+
+	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Pitch, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Yaw, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Yaw2, COND_SkipOwner);
 
-	//DOREPLIFETIME(APlayer_CharacterBase, Upper_Pitch);
-	//DOREPLIFETIME(APlayer_CharacterBase, Upper_Yaw);
-	//DOREPLIFETIME(APlayer_CharacterBase, Upper_Yaw2);
+	/*DOREPLIFETIME_CONDITION(APlayer_CharacterBase, InputDirForward, COND_SkipOwner);
+	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, InputDirRight, COND_SkipOwner);*/
 
-}*/
+}

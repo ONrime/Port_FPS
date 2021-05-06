@@ -61,9 +61,12 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 	float Deltatime = GetWorld()->GetDeltaSeconds();
 	float Pitch = PlayerBase->GetUpper_Pitch();
 	float Yaw = PlayerBase->GetUpper_Yaw();
+
 	if (PlayerBase->IsPlayerCameraTurn) {  //시점에 따른 캐릭터 회전 결정 true=시점에 따른 이동 false=원하는 방향 대로 캐릭터 회전 결정
 		PlayerBase->SpringArm->bUsePawnControlRotation = true;
-
+		if (PlayerBase->HasAuthority()) {
+			
+		}
 		if (PlayerBase->GetVelocity().X > 0 || PlayerBase->GetVelocity().Y > 0) {  //움직일때
 			PlayerRotationYawSpeed = 20.0f;
 		}
@@ -83,22 +86,12 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 		if (PlayerBase->IsPlayerRotationYawSpeedSlow) {
 			PlayerRotationYawSpeed = 0.01f;
 		}
-
-		/*if (PlayerBase->GetSDodgeMove()) {
-			FRotator InterpToAngle = FMath::RInterpTo(FRotator(0.0f, SProneYaw, 0.0f), ((Player->GetControlRotation() - Player->GetProneRot()).GetNormalized()), Deltatime, 500.0f);
-			SProneYaw = InterpToAngle.Yaw;
-			PlayerBase->SetProneYaw(SProneYaw);
-			PlayerRotationYawSpeed = 200.0f;
-		}*/
-		PlayerRotationYaw = FMath::RInterpTo(PlayerBase->GetActorRotation(), PlayerBase->Controller->GetControlRotation(), GetWorld()->DeltaTimeSeconds, PlayerRotationYawSpeed).Yaw;
-
+		
+		PlayerRotationYaw = FMath::RInterpTo(PlayerBase->GetActorRotation(), PlayerBase->GetControlRotation(), GetWorld()->DeltaTimeSeconds, PlayerRotationYawSpeed).Yaw;
 		PlayerM->PlayerRotationYaw = PlayerRotationYaw;
 		PlayerM->PlayerRotationYawSpeed = PlayerRotationYawSpeed;
-
+		
 		PlayerBase->AddControllerYawInput(Rate * PlayerBase->BaseTurnRate * GetWorld()->GetDeltaSeconds());
-		PlayerBase->SpringArm->SetRelativeRotation(FRotator(0.0f, PlayerBase->Controller->GetControlRotation().Yaw, 0.0f));
-		//UE_LOG(LogTemp, Warning, TEXT("PlayerRotationYaw: %f"), PlayerRotationYaw);
-		//UE_LOG(LogTemp, Warning, TEXT("GetControlRotation: %f"), Player->Controller->GetControlRotation().Yaw);
 	}
 	else { // 카메라 움직임 끄기
 		PlayerBase->SpringArm->bUsePawnControlRotation = false;
@@ -130,20 +123,6 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 
 }
 
-/*bool UStanding_PlayerDown_StateBase::Server_PlayerRotation_Validate(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw)
-{
-	return true;
-}
-
-void UStanding_PlayerDown_StateBase::Server_PlayerRotation_Implementation(APlayer_CharacterBase* PlayerBase, float PlayerRotationSpeed, float PlayerYaw)
-{
-	if (PlayerBase) {
-		PlayerYaw = FMath::RInterpTo(PlayerBase->GetActorRotation(), PlayerBase->Controller->GetControlRotation(), GetWorld()->DeltaTimeSeconds, PlayerRotationSpeed).Yaw;
-		PlayerBase->SetActorRelativeRotation(FRotator(0.0f, PlayerYaw, 0.0f));
-	}
-	
-}*/
-
 bool UStanding_PlayerDown_StateBase::CheckLoc(FVector now, FVector target, float min)
 {
 	if ((now.X <= target.X + min && now.X >= target.X - min) && (now.Y <= target.Y + min && now.Y >= target.Y - min) && (now.Z <= target.Z + min && now.Z >= target.Z - min)) {
@@ -151,15 +130,3 @@ bool UStanding_PlayerDown_StateBase::CheckLoc(FVector now, FVector target, float
 	}
 	return false;
 }
-
-/*void UStanding_PlayerDown_StateBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	//DOREPLIFETIME_CONDITION(AMultiPlayer_CharacterBase, Upper_Pitch, COND_SkipOwner);
-	//DOREPLIFETIME(AMultiPlayer_CharacterBase, Upper_Pitch);
-
-	DOREPLIFETIME(UStanding_PlayerDown_StateBase, PlayerRotationYawSpeed);
-	DOREPLIFETIME(UStanding_PlayerDown_StateBase, PlayerRotationYaw);
-
-}*/
