@@ -8,6 +8,7 @@ public class Port_FPSEditorTarget : TargetRules
 	public Port_FPSEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
+		bUsesSteam = true;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.Add("Port_FPS");
 	}

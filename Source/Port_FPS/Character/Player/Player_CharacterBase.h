@@ -53,6 +53,12 @@ protected:
 	FVector MoveDir = FVector::ZeroVector;
 	float InputDir = 0.0f;
 
+	//UPROPERTY(Replicated)
+	class UPlayerDown_StateBase* StateDownN = nullptr;
+	//UPROPERTY(Replicated)
+	class UPlayerUpper_StateBase* StateUpperN = nullptr;
+
+
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -80,8 +86,5 @@ public:
 private:
 	FVector HeadCameraLoc = FVector::ZeroVector;
 	
-
-	class UPlayerDown_StateBase* StateDownN = nullptr;
-	class UPlayerUpper_StateBase* StateUpperN = nullptr;
-
+	
 };

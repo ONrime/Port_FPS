@@ -26,20 +26,28 @@ AMultiPlayer_CharacterBase::AMultiPlayer_CharacterBase()
 	if (LEGBODY_ANIMBP.Succeeded()) { BodyMesh->SetAnimInstanceClass(LEGBODY_ANIMBP.Class); }
 	
 	SpringArm->SetRelativeScale3D(FVector(0.2f, 0.2f, 0.2f));
-	//GetMesh()->bOnlyOwnerSee = true;
-	
 
 }
 
 void AMultiPlayer_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
 	BodyMesh->SetOwnerNoSee(true);
 	BodyMesh->SetCastShadow(true);
 	BodyMesh->bCastHiddenShadow = true;
-	GetMesh()->HideBoneByName(FName("spine_03"), PBO_None);
-	GetMesh()->SetOnlyOwnerSee(true);
-	GetMesh()->SetCastShadow(false);
+
+	SetStateDownN(NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass()));
+	SetStateUpperN(NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass()));
+	/*if (!HasAuthority() && IsLocallyControlled()) {
+		Server_Update_PlayerDownState(NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass()));
+		Server_Update_PlayerUpperState(NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass()));
+	}*/
+	StateDownNClass = GetStateDownN()->GetState();
+	StateUpperNClass = GetStateUpperN()->GetState();
+	GetStateDownN()->StateStart(this);
+	GetStateUpperN()->StateStart(this);
+	
 	//SetStateDownN(NewObject<UProne_M_PlayerDown_StateBase>(this, UProne_M_PlayerDown_StateBase::StaticClass()));
 	//GetStateDownN()->StateStart(this);
 }
@@ -48,14 +56,20 @@ void AMultiPlayer_CharacterBase::TurnAtRate(float Rate)
 {
 	//Super::TurnAtRate(Rate);
 	AimDirRight = Rate;
-	GetStateDownN()->TurnAtRate(this, Rate);
+	if (IsLocallyControlled()) {
+		
+	}
+	//GetStateDownN()->TurnAtRate(this, 1.0f);
 }
 
 void AMultiPlayer_CharacterBase::LookUpAtRate(float Rate)
 {
 	//Super::LookUpAtRate(Rate);
 	AimDirForward = Rate;
-	GetStateDownN()->LookUpAtRate(this, Rate);
+	if (IsLocallyControlled()) {
+		
+	}
+	//GetStateDownN()->LookUpAtRate(this, 1.0f);
 }
 
 void AMultiPlayer_CharacterBase::PlayerJump()
@@ -115,10 +129,35 @@ void AMultiPlayer_CharacterBase::Server_PlayerRotation_Implementation(float Play
 	PlayerRotationYawSpeed = PlayerRotationSpeed;
 }
 
+bool AMultiPlayer_CharacterBase::Server_Update_PlayerDownState_Validate(UPlayerDown_StateBase* state)
+{
+	return true;
+}
+void AMultiPlayer_CharacterBase::Server_Update_PlayerDownState_Implementation(UPlayerDown_StateBase* state)
+{
+	SetStateDownN(state);
+}
+
+bool AMultiPlayer_CharacterBase::Server_Update_PlayerUpperState_Validate(UPlayerUpper_StateBase* state)
+{
+	return true;
+}
+
+void AMultiPlayer_CharacterBase::Server_Update_PlayerUpperState_Implementation(UPlayerUpper_StateBase* state)
+{
+	SetStateUpperN(state);
+}
+
 void AMultiPlayer_CharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//GetStateDownN()->StateUpdate(this);
+	//GetStateUpperN()->StateUpdate(this);
+
+	GetStateDownN()->TurnAtRate(this, AimDirRight);
+	GetStateDownN()->LookUpAtRate(this, AimDirForward);
+	//UE_LOG(LogTemp, Warning, TEXT("server_Update: %s AimDirRight %f"), *GetName(), DeltaTime);
 	if (HasAuthority()) { // 플레이어 전체 회전 (서버)
 		if (IsLocallyControlled()) {
 			Move(DeltaTime);
@@ -127,24 +166,27 @@ void AMultiPlayer_CharacterBase::Tick(float DeltaTime)
 		}
 		SetActorRelativeRotation(FRotator(0.0f, PlayerRotationYaw, 0.0f));
 		PitchAndYaw();
-		//UE_LOG(LogTemp, Warning, TEXT("server_Update: %s InputDirRight %f"), *GetName(), InputDirRight);
+		//UE_LOG(LogTemp, Warning, TEXT("server_Update: %s PlayerRotationYaw %f"), *GetName(), PlayerRotationYaw);
 	}
 	else { // (클라이언트)
 		if (IsLocallyControlled()) {
 			Move(DeltaTime);
 			SetActorRelativeRotation(FRotator(0.0f, PlayerRotationYaw, 0.0f));
-			Server_PlayerRotation(PlayerRotationYawSpeed, PlayerRotationYaw);
+			//Server_PlayerRotation(PlayerRotationYawSpeed, PlayerRotationYaw);
 			PitchAndYaw(); // 자연스럽게 하기위해 서버에서도 따로 처리하고 클라이언트에서도(주인만) 따로 처리한다 대신 서버에서는 다른 클라이언트에게 복제하여 전달.
 		}
 		else {
 		}
-		//UE_LOG(LogTemp, Warning, TEXT("cla_Update: %s InputDirRight %f"), *GetName(), InputDirRight);
+		//UE_LOG(LogTemp, Warning, TEXT("cla_Update: %s PlayerRotationYaw %f"), *GetName(), PlayerRotationYaw);
 	}
 }
 
 void AMultiPlayer_CharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	//PlayerInputComponent->BindAxis("Turn", this, &AMultiPlayer_CharacterBase::TurnAtRate);
+	//PlayerInputComponent->BindAxis("LookUp", this, &AMultiPlayer_CharacterBase::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Testput", IE_Pressed, this, &AMultiPlayer_CharacterBase::PlayerInputTest);
 
@@ -159,9 +201,6 @@ void AMultiPlayer_CharacterBase::PitchAndYaw()
 {
 	float Deltatime = GetWorld()->GetDeltaSeconds();
 	FRotator InterpToAngle = FMath::RInterpTo(FRotator(Upper_Pitch, Upper_Yaw, 0.0f), ((GetControlRotation() - GetActorRotation()).GetNormalized()), Deltatime, 500.0f);
-	M_Upper_Yaw = FMath::ClampAngle(InterpToAngle.Yaw, -90.0f, 90.0f);
-	M_Upper_Yaw2 = InterpToAngle.Yaw;
-	M_Upper_Pitch = FMath::ClampAngle(InterpToAngle.Pitch, -90.0f, 90.0f);
 	Upper_Yaw = FMath::ClampAngle(InterpToAngle.Yaw, -90.0f, 90.0f);
 	Upper_Yaw2 = InterpToAngle.Yaw;
 	Upper_Pitch= FMath::ClampAngle(InterpToAngle.Pitch, -90.0f, 90.0f);
@@ -171,10 +210,6 @@ void AMultiPlayer_CharacterBase::PitchAndYaw()
 void AMultiPlayer_CharacterBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AMultiPlayer_CharacterBase, M_Upper_Pitch);
-	DOREPLIFETIME(AMultiPlayer_CharacterBase, M_Upper_Yaw2);
-	DOREPLIFETIME(AMultiPlayer_CharacterBase, M_Upper_Yaw2);
 
 	DOREPLIFETIME_CONDITION(AMultiPlayer_CharacterBase, testd, COND_SkipOwner);
 

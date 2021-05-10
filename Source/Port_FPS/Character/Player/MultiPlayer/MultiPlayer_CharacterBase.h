@@ -29,14 +29,6 @@ public:
 	void PlayerInputTest();
 
 
-
-	UPROPERTY(Replicated)
-		float M_Upper_Yaw = 0.0f;
-	UPROPERTY(Replicated)
-		float M_Upper_Yaw2 = 0.0f;
-	UPROPERTY(Replicated)
-		float M_Upper_Pitch = 0.0f;
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void TurnAtRate(float Rate) override;
@@ -62,6 +54,15 @@ protected:
 	void Server_PlayerRotation(float PlayerRotationSpeed, float PlayerYaw);
 	void Server_PlayerRotation_Implementation(float PlayerRotationSpeed, float PlayerYaw);
 	bool Server_PlayerRotation_Validate(float PlayerRotationSpeed, float PlayerYaw);
+
+	UFUNCTION(Reliable, Server, WithValidation)
+	void Server_Update_PlayerDownState(UPlayerDown_StateBase* state);
+	bool Server_Update_PlayerDownState_Validate(UPlayerDown_StateBase* state);
+	void Server_Update_PlayerDownState_Implementation(UPlayerDown_StateBase* state);
+	UFUNCTION(Reliable, NetMulticast, WithValidation)
+	void Server_Update_PlayerUpperState(UPlayerUpper_StateBase* state);
+	bool Server_Update_PlayerUpperState_Validate(UPlayerUpper_StateBase* state);
+	void Server_Update_PlayerUpperState_Implementation(UPlayerUpper_StateBase* state);
 	
 
 	UPROPERTY(Replicated)

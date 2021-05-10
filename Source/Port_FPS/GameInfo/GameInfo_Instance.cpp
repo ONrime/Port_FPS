@@ -36,12 +36,13 @@ void UGameInfo_Instance::Init()
 	if (IOnlineSubsystem* SubSystem = IOnlineSubsystem::Get()) {
 		SessionInterface = SubSystem->GetSessionInterface();
 		if (SessionInterface.IsValid()) {
-			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnCreateSessionComplete);
+			//SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnCreateSessionComplete);
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnCreateSessionComplete_Lobby);
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnJoinSessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UGameInfo_Instance::OnFindSessionsComplete);
 		}
 	}
+	SessionSearch.Reset();
 
 	ShowMainMenu.AddUObject(this, &UGameInfo_Instance::Show_MainMenu);
 	ShowLodingScreen.AddUObject(this, &UGameInfo_Instance::Show_LodingScreen);
@@ -95,11 +96,12 @@ void UGameInfo_Instance::OnFindSessionsComplete(bool Succeeded)
 		SessionsNum = SessionSearch->SearchResults.Num();
 		IsFindServer = true;
 		//Join_Server();
+		FindSessionSucceeded.Broadcast();
 	}
 	else {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("OnFindSessionsFailed"));
 		IsFindServer = false;
-		//FindSessionFaild.Broadcast();
+		FindSessionFaild.Broadcast();
 	}
 
 }
@@ -204,19 +206,49 @@ void UGameInfo_Instance::Join_Server()
 	UE_LOG(LogTemp, Warning, TEXT("SearchResults Count: %d"), SearchResults.Num());
 	if (SearchResults.Num()) {
 		//ServerName= SearchResults[0]->
-		SessionInterface->JoinSession(0, "None", SearchResults[0]);
+		SessionInterface->JoinSession(0, "test", SearchResults[0]);
 	}
 }
 
 void UGameInfo_Instance::Find_Server()
 {
-	SessionSearch.Reset();
+	/*SessionSearch.Reset();
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	SessionSearch->bIsLanQuery = IsLan; //lan üũ
+	SessionSearch->bIsLanQuery = false; //lan üũ
 	SessionSearch->MaxSearchResults = 20;
-	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	SessionSearch->PingBucketSize = 50;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);*/
 
-	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+	//SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+
+	// Get the OnlineSubsystem we want to work with
+	IOnlineSubsystem* OnlineSub = IOnlineSubsystem::Get();
+
+	if (OnlineSub)
+	{
+		// Get the SessionInterface from our OnlineSubsystem
+		IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+
+		if (SessionInterface.IsValid())
+		{
+			SessionSearch = MakeShareable(new FOnlineSessionSearch());
+			SessionSearch->bIsLanQuery = false;
+			SessionSearch->MaxSearchResults = 20;
+			SessionSearch->PingBucketSize = 50;
+			SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+			TSharedRef<FOnlineSessionSearch> SearchSettingsRef = SessionSearch.ToSharedRef();
+
+			// Finally call the SessionInterface function. The Delegate gets called once this is finished
+			SessionInterface->FindSessions(0, SearchSettingsRef);
+		}
+	}
+	else
+	{
+		// If something goes wrong, just call the Delegate Function directly with "false".
+		OnFindSessionsComplete(false);
+	}
+		
 }
 
 void UGameInfo_Instance::Show_LodingScreen()

@@ -38,7 +38,7 @@ void UPlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBase, float 
 void UPlayerDown_StateBase::LookUpAtRate(APlayer_CharacterBase* PlayerBase, float Rate)
 {
 	if (PlayerBase->IsPlayerCameraTurn) {
-		float PitchRate = Rate * PlayerBase->BaseLookUpRate * GetWorld()->GetDeltaSeconds();
+		float PitchRate = Rate * PlayerBase->BaseLookUpRate * 0.008f;
 		PlayerBase->AddControllerPitchInput(PitchRate);
 	}
 	else { // 카메라 움직임 끄기

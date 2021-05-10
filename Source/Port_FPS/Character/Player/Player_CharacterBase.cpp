@@ -10,7 +10,8 @@
 APlayer_CharacterBase::APlayer_CharacterBase()
 {
 	//GetCapsuleComponent()->SetCollisionProfileName("");
-	bReplicates = true;
+	SetReplicates(true);
+	SetReplicateMovement(true);
 	//GetMesh()->SetCollisionProfileName("");
 	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh>FULLBODY_SKELETALMESH(TEXT("SkeletalMesh'/Game/PlayerFile/Mesh/SC_Cyborg_Soldier_V3.SC_Cyborg_Soldier_V3'"));
 	if (FULLBODY_SKELETALMESH.Succeeded()) { GetMesh()->SetSkeletalMesh(FULLBODY_SKELETALMESH.Object); }
@@ -55,9 +56,7 @@ APlayer_CharacterBase::APlayer_CharacterBase()
 	GetCharacterMovement()->JumpZVelocity = 500.0f;
 	GetCharacterMovement()->AirControl = 0.2f;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;  // 컨트롤러 방향으로 캐릭터 회전(무브먼트 기준)
-	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 1000.0f, 0.0f); // 위설정시 속도 설정
 	GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
-	//GetCharacterMovement()->MaxWalkSpeed = 700.0f;
 
 
 }
@@ -66,13 +65,25 @@ void APlayer_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	StateDownN = NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass());
-	StateUpperN = NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass());
-	StateUpperNClass = StateUpperN->GetState();
-	StateDownNClass = StateDownN->GetState();
-	StateDownN->StateStart(this);
-	StateUpperN->StateStart(this);
+	GetMesh()->HideBoneByName(FName("spine_03"), PBO_None);
+	GetMesh()->SetOnlyOwnerSee(true);
+	GetMesh()->SetCastShadow(false);
+	ArmMesh->SetOnlyOwnerSee(true);
 	IsPlayerCameraTurn = true;
+
+	//StateDownN = NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass());
+	//StateUpperN = NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass());
+	/*//StateDownN = nullptr;
+	//StateUpperN = nullptr;
+	/*if (!HasAuthority() && IsLocallyControlled()) {
+		Server_Update_PlayerDownState(NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass()));
+		Server_Update_PlayerUpperState(NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass()));
+	}
+	StateDownNClass = StateDownN->GetState();
+	StateUpperNClass = StateUpperN->GetState();
+	StateDownN->StateStart(this);
+	StateUpperN->StateStart(this);*/
+
 }
 
 void APlayer_CharacterBase::TurnAtRate(float Rate)
@@ -82,8 +93,13 @@ void APlayer_CharacterBase::TurnAtRate(float Rate)
 	FRotator InterpToAngle = FMath::RInterpTo(FRotator(0.0f, Upper_Yaw, 0.0f), ((GetControlRotation() - GetActorRotation()).GetNormalized()), Deltatime, 500.0f);
 	Upper_Yaw = FMath::ClampAngle(InterpToAngle.Yaw, -90.0f, 90.0f);
 	Upper_Yaw2 = InterpToAngle.Yaw;
+	//GetStateDownN()->TurnAtRate(this, 1.0f);
 	//UE_LOG(LogTemp, Warning, TEXT("Upper_Yaw Rotation: %f"), YawUpper_Yaw);
-
+	/*AimDirRight = Rate;
+	if (IsLocallyControlled()) {
+		
+	}
+	GetStateDownN()->TurnAtRate(this, Rate);*/
 }
 
 void APlayer_CharacterBase::LookUpAtRate(float Rate)
@@ -94,7 +110,12 @@ void APlayer_CharacterBase::LookUpAtRate(float Rate)
 	FMath::ClampAngle(InterpToAngle.Pitch, -90.0f, 90.0f);
 	Upper_Pitch = FMath::ClampAngle(InterpToAngle.Pitch, -90.0f, 90.0f);
 	//UE_LOG(LogTemp, Warning, TEXT("Upper_Pitch Rotation: %f"), Upper_Pitch);
-
+	
+	/*AimDirForward = Rate;
+	if (IsLocallyControlled()) {
+		
+	}
+	GetStateDownN()->LookUpAtRate(this, Rate);*/
 }
 
 void APlayer_CharacterBase::MoveForward(float Value)
@@ -156,6 +177,7 @@ void APlayer_CharacterBase::Tick(float DeltaTime)
 	//Move(DeltaTime);
 
 	SpringArm->SetRelativeLocation(FVector(HeadCameraLoc.X, HeadCameraLoc.Y, HeadCameraLoc.Z));
+	//UE_LOG(LogTemp, Warning, TEXT("APlayer_CharacterBase::Tick"));
 }
 
 void APlayer_CharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -239,7 +261,7 @@ void APlayer_CharacterBase::Move(float DeltaSeconds)
 		}
 		else { InputDir = FMath::Abs(InputDirRight); }
 		//UE_LOG(LogTemp, Warning, TEXT("Input: %f"), FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(0.0f, PlayerSpeed), InputDir));
-		AddMovementInput(MoveDir, FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(0.0f, PlayerSpeed), InputDir) * DeltaSeconds);
+		AddMovementInput(MoveDir, FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(0.0f, PlayerSpeed), InputDir) * 0.008f);
 		//MoveDir.Set(0.0f, 0.0f, 0.0f);
 	}
 }
@@ -251,6 +273,12 @@ void APlayer_CharacterBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty
 	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Pitch, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Yaw, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, Upper_Yaw2, COND_SkipOwner);
+
+	//DOREPLIFETIME_CONDITION(APlayer_CharacterBase, StateDownN, COND_SkipOwner);
+	//DOREPLIFETIME_CONDITION(APlayer_CharacterBase, StateUpperN, COND_SkipOwner);
+
+	//DOREPLIFETIME(APlayer_CharacterBase, StateDownN);
+	//DOREPLIFETIME(APlayer_CharacterBase, StateUpperN);
 
 	/*DOREPLIFETIME_CONDITION(APlayer_CharacterBase, InputDirForward, COND_SkipOwner);
 	DOREPLIFETIME_CONDITION(APlayer_CharacterBase, InputDirRight, COND_SkipOwner);*/

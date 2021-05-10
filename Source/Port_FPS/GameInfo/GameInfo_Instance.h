@@ -27,7 +27,7 @@ public:
 
 protected:
 	IOnlineSessionPtr SessionInterface;
-	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 	virtual void Init() override;
 	virtual void OnCreateSessionComplete(FName Server_Name, bool Succeeded);
@@ -53,6 +53,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
 	FSessionDelegate FindSessionFaild;
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintCallable, Category = "Event")
+	FSessionDelegate FindSessionSucceeded;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu", meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* MainMenu_WB;
@@ -81,8 +83,9 @@ public:
 	void Show_OptionMenu();  // 옵션 메뉴 화면 전환 and 마우스 활성화
 	UFUNCTION(BlueprintCallable, Category = "Event")
 	void Launch_Lobby(int32 Player_Num, FName Server_Name, bool Lan);  // 로비를 시작하고 호스트를 세팅한다.
-	//UFUNCTION(BlueprintCallable, Category = "Event")
+	UFUNCTION(BlueprintCallable, Category = "Event")
 	void Join_Server();  // 서버에 들어가기
+	UFUNCTION(BlueprintCallable, Category = "Event")
 	void Find_Server();  // 서버 찾기
 	UFUNCTION(BlueprintCallable, Category = "Event")
 	void Show_LodingScreen(); // 요구시 로딩 화면 출력

@@ -22,21 +22,16 @@ public:
 
 	//virtual void NativeConstruct() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerSettings", meta = (BindWidget))
-	bool testb = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayerSettings")
-	bool testc = false;
-
-	UFUNCTION(BlueprintCallable, meta = (BindWidget))
+	/*UFUNCTION(BlueprintCallable, meta = (BindWidget))
 	void JoinServer();
 	UFUNCTION(BlueprintCallable, meta = (BindWidget))
-	void FindServer();
+	void FindServer();*/
 
 protected:
 
 private:
-	UPROPERTY()
-	class UGameInfo_Instance* GameIns;
+	//UPROPERTY()
+	//class UGameInfo_Instance* GameIns;
 
 	
 };

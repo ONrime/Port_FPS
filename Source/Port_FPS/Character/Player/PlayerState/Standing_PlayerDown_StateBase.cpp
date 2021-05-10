@@ -27,7 +27,7 @@ UPlayerDown_StateBase* UStanding_PlayerDown_StateBase::HandleInput(APlayer_Chara
 
 void UStanding_PlayerDown_StateBase::StateStart(APlayer_CharacterBase* PlayerBase)
 {
-	UE_LOG(LogTemp, Warning, TEXT("UStanding_PlayerDown: Start"));
+	//UE_LOG(LogTemp, Warning, TEXT("UStanding_PlayerDown: Start"));
 	PlayerBase->IsMove=true;
 	PlayerBase->PlayerSpeed = 70.0f;
 
@@ -35,6 +35,15 @@ void UStanding_PlayerDown_StateBase::StateStart(APlayer_CharacterBase* PlayerBas
 	MeshLocZ = PlayerBase->GetMesh()->GetRelativeLocation().Z;
 
 	PlayerBase->IsPlayerCameraTurn=true;
+
+	if (PlayerBase->HasAuthority()) { // 플레이어 전체 회전 (서버)
+		UE_LOG(LogTemp, Warning, TEXT("server_Update: %s UStanding_PlayerDown: Start"), *PlayerBase->GetName());
+	}
+	else { // (클라이언트)
+		if (PlayerBase->IsLocallyControlled()) {
+			UE_LOG(LogTemp, Warning, TEXT("cla_Update: %s UStanding_PlayerDown: Start"), *PlayerBase->GetName());
+		}
+	}
 }
 
 void UStanding_PlayerDown_StateBase::StateUpdate(APlayer_CharacterBase* PlayerBase)
@@ -62,11 +71,12 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 	float Pitch = PlayerBase->GetUpper_Pitch();
 	float Yaw = PlayerBase->GetUpper_Yaw();
 
+	if (!PlayerBase->HasAuthority() && PlayerBase->IsLocallyControlled()) {
+		//UE_LOG(LogTemp, Warning, TEXT("cla_Update: %s UStanding_PlayerDown: TurnAtRate"), *PlayerBase->GetName());
+	}
+
 	if (PlayerBase->IsPlayerCameraTurn) {  //시점에 따른 캐릭터 회전 결정 true=시점에 따른 이동 false=원하는 방향 대로 캐릭터 회전 결정
 		PlayerBase->SpringArm->bUsePawnControlRotation = true;
-		if (PlayerBase->HasAuthority()) {
-			
-		}
 		if (PlayerBase->GetVelocity().X > 0 || PlayerBase->GetVelocity().Y > 0) {  //움직일때
 			PlayerRotationYawSpeed = 20.0f;
 		}
@@ -91,7 +101,7 @@ void UStanding_PlayerDown_StateBase::TurnAtRate(APlayer_CharacterBase* PlayerBas
 		PlayerM->PlayerRotationYaw = PlayerRotationYaw;
 		PlayerM->PlayerRotationYawSpeed = PlayerRotationYawSpeed;
 		
-		PlayerBase->AddControllerYawInput(Rate * PlayerBase->BaseTurnRate * GetWorld()->GetDeltaSeconds());
+		PlayerBase->AddControllerYawInput(Rate * PlayerBase->BaseTurnRate * 0.008f);
 	}
 	else { // 카메라 움직임 끄기
 		PlayerBase->SpringArm->bUsePawnControlRotation = false;
