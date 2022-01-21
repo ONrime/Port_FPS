@@ -70,7 +70,9 @@ void APlayer_CharacterBase::BeginPlay()
 	GetMesh()->SetCastShadow(false);
 	ArmMesh->SetOnlyOwnerSee(true);
 	IsPlayerCameraTurn = true;
-
+	auto controller = Cast<APlayerController>(GetController());
+	//controller->SetShowMouseCursor(false);
+	controller->SetInputMode(FInputModeGameAndUI());
 	//StateDownN = NewObject<UStanding_PlayerDown_StateBase>(this, UStanding_PlayerDown_StateBase::StaticClass());
 	//StateUpperN = NewObject<UAim_PlayerUpper_StateBase>(this, UAim_PlayerUpper_StateBase::StaticClass());
 	/*//StateDownN = nullptr;
